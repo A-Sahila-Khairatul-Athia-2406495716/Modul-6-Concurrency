@@ -1,6 +1,6 @@
 ## Module 06 - Concurrency
 
-<details><summary><b>Milestone 1: Single threaded web server</b></summary>
+<details><summary><b>Commit 1 Reflection notes</b></summary>
 
 Method `handle_connection` membaca data dari `TcpStream` menggunakan `BufReader`. Method `lines()` digunakan untuk membaca request line per line, dan `take_while(|line| !line.is_empty())` digunakan untuk berhenti membaca ketika menemukan empty line, karena HTTP request diakhiri dengan dua newline berturut-turut. Output yang muncul di terminal menunjukkan struktur HTTP request seperti `GET / HTTP/1.1`, diikuti berbagai headers seperti `Host`, `User-Agent`, dan sebagainya.
 
@@ -8,7 +8,7 @@ Saat pertama kali menjalankan server (sebelum ada method `handle_connection`), m
 
 </details>
 
-<details><summary><b>Milestone 2: Returning HTML</b></summary>
+<details><summary><b>Commit 2 Reflection notes</b></summary>
 
 ![Commit 2 screen capture](/assets/images/commit2.png)
 
@@ -16,7 +16,7 @@ Metode `handle_connection` dimodifikasi agar server bisa mengirimkan response HT
 
 </details>
 
-<details><summary><b>Milestone 3: Validating request and selectively responding</b></summary>
+<details><summary><b>Commit 3 Reflection notes</b></summary>
 
 ![Commit 3 screen capture](/assets/images/commit3.png)
 
@@ -26,18 +26,24 @@ Dalam memodifikasi method ini, dilakukan refactoring karena kode untuk membaca f
 
 </details>
 
-<details><summary><b>Milestone 4: Simulation slow response</b></summary>
+<details><summary><b>Commit 4 Reflection notes</b></summary>
 
 Di sini ditambahkan simulasi slow request dengan menambahkan endpoint `/sleep` yang menggunakan `thread::sleep(Duration::from_secs(10))` di mana akan membuat server "tidur" selama 10 detik sebelum mengirim response.
 Dapat terlihat jelas masalah dari single-threaded server, yaitu ketika satu tab browser membuka `/sleep`, tab lain yang mencoba membuka `/` harus menunggu sampai request `/sleep` selesai dulu, padahal request `/` seharusnya bisa diproses dengan sangat cepat. Ini karena server hanya bisa menangani satu request dalam satu waktu secara sequential. Jika ada lebih banyak user lagi yang mengakses secara bersamaan, akan lebih kacau lagi. Inilah mengapa kita perlu multithreaded server.
 
 </details>
 
-<details><summary><b>Milestone 5: Multithreaded Server</b></summary>
+<details><summary><b>Commit 5 Reflection notes</b></summary>
 
 Server diubah menjadi multithreaded menggunakan `ThreadPool`, yaitu sekumpulan thread yang sudah dispawn sejak awal untuk menunggu dan mengerjakan job yang masuk. Cara ini jauh lebih aman daripada membuat thread baru untuk setiap request yang bisa menyebabkan server kehabisan resource (rentan DoS attack).
 
 `ThreadPool` menyimpan sejumlah `worker` dan sebuah `sender` dari `mpsc` channel. Setiap `worker` berisi thread yang terus loop menunggu job dari `receiver`. Karena `receiver` dishare ke banyak `worker`, perlu dibungkus dengan `Arc<Mutex<T>>`. `Arc` agar ownership bisa dishare, dan `Mutex` agar hanya satu `worker` yang bisa mengambil job dalam satu waktu. Ketika `pool.execute()` dipanggil, closure diwrap sebagai `Job` dan dikirim melalui channel, lalu salah satu `worker` yang idle akan mengambil dan mengeksekusinya. Hasilnya, request ke `/sleep` dan `/` sekarang bisa diproses secara bersamaan oleh thread yang berbeda, tidak lagi harus menunggu antrian seperti sebelumnya.
+
+</details>
+
+<details><summary><b>Commit Bonus Reflection notes</b></summary>
+
+Pembuatan `ThreadPool` dibuat jadi lebih aman dengan menambahkan fungsi `build`. Perbedaannya, fungsi `new` yang lama memakai `assert!` yang akan membuat program langsung mati (panic) kalau jumlah thread yang dimasukkan tidak valid (misal 0). Dengan fungsi `build`, saya menggunakan tipe `Result` agar server bisa memberikan laporan error tanpa harus langsung crash. `#[derive(Debug)]` juga ditambahkan pada struct errornya agar isi error tersebut bisa diprint di terminal saat proses debugging. Perubahan ini membuat kode saya lebih robust.
 
 </details>
 
