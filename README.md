@@ -16,3 +16,14 @@ Metode `handle_connection` dimodifikasi agar server bisa mengirimkan response HT
 
 </details>
 
+<details><summary><b>Milestone 3: Validating request and selectively responding</b></summary>
+
+![Commit 3 screen capture](/assets/images/commit3.png)
+
+Server yang tadinya selalu mengembalikan `hello.html` untuk request apapun, sekarang bisa membedakan request mana yang valid dan mana yang tidak. Method `handle_connection` dimodifikasi dengan menambahkan `let request_line = &http_request[0]` untuk mengambil baris pertama HTTP request (`http_request`). Dari baris ini kita bisa tahu method apa yang dipakai (`GET`), path mana yang diminta (`/`), dan versi HTTPnya (`1.1`). Kalau requestnya ke path `/`, akan dikembalikan `hello.html` dengan status `200 OK`. Selain itu (misalnya misalnya `GET /bad HTTP/1.1`), akan dikembalikan `404.html` dengan status `404 NOT FOUND`.
+
+Dalam memodifikasi method ini, dilakukan refactoring karena kode untuk membaca file, menghitung length, menyusun response, dan menulis ke stream untuk kedua case sama persis. Daripada ditulis dua kali, bagian yang berbeda (`status_line` dan `filename`) dijadikan conditional, sementara bagian yang sama cukup ditulis sekali di luar conditional block.
+
+</details>
+
+
