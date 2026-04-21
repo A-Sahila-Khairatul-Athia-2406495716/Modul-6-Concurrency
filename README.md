@@ -26,4 +26,11 @@ Dalam memodifikasi method ini, dilakukan refactoring karena kode untuk membaca f
 
 </details>
 
+<details><summary><b>Milestone 4: Simulation slow response</b></summary>
+
+Di sini ditambahkan simulasi slow request dengan menambahkan endpoint `/sleep` yang menggunakan `thread::sleep(Duration::from_secs(10))` di mana akan membuat server "tidur" selama 10 detik sebelum mengirim response.
+Dapat terlihat jelas masalah dari single-threaded server, yaitu ketika satu tab browser membuka `/sleep`, tab lain yang mencoba membuka `/` harus menunggu sampai request `/sleep` selesai dulu, padahal request `/` seharusnya bisa diproses dengan sangat cepat. Ini karena server hanya bisa menangani satu request dalam satu waktu secara sequential. Jika ada lebih banyak user lagi yang mengakses secara bersamaan, akan lebih kacau lagi. Inilah mengapa kita perlu multithreaded server.
+
+</details>
+
 
