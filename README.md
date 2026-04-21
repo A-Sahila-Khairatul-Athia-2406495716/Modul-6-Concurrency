@@ -33,4 +33,13 @@ Dapat terlihat jelas masalah dari single-threaded server, yaitu ketika satu tab 
 
 </details>
 
+<details><summary><b>Milestone 5: Multithreaded Server</b></summary>
+
+Server diubah menjadi multithreaded menggunakan `ThreadPool`, yaitu sekumpulan thread yang sudah dispawn sejak awal untuk menunggu dan mengerjakan job yang masuk. Cara ini jauh lebih aman daripada membuat thread baru untuk setiap request yang bisa menyebabkan server kehabisan resource (rentan DoS attack).
+
+`ThreadPool` menyimpan sejumlah `worker` dan sebuah `sender` dari `mpsc` channel. Setiap `worker` berisi thread yang terus loop menunggu job dari `receiver`. Karena `receiver` dishare ke banyak `worker`, perlu dibungkus dengan `Arc<Mutex<T>>`. `Arc` agar ownership bisa dishare, dan `Mutex` agar hanya satu `worker` yang bisa mengambil job dalam satu waktu. Ketika `pool.execute()` dipanggil, closure diwrap sebagai `Job` dan dikirim melalui channel, lalu salah satu `worker` yang idle akan mengambil dan mengeksekusinya. Hasilnya, request ke `/sleep` dan `/` sekarang bisa diproses secara bersamaan oleh thread yang berbeda, tidak lagi harus menunggu antrian seperti sebelumnya.
+
+</details>
+
+
 
